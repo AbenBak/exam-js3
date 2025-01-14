@@ -56,15 +56,11 @@ if (document.title.includes('Catalog') || document.title.includes('Profile')) {
                     const movieRelease = e.target.closest('.movie').querySelector('.release').textContent.replace('Release: ', '');
                     const movieCost = parseInt(e.target.closest('.movie').querySelector('.cost').textContent.replace('$', '').trim());
                     const moviePoster = e.target.closest('.movie').querySelector('img').src;
-            
-                    // Получаем текущего пользователя
                     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
                     if (!currentUser) {
                         alert('Пожалуйста, войдите в систему');
                         return;
                     }
-
-                    // Добавляем фильм в корзину текущего пользователя
                     let cart = currentUser.cart || [];
                     const existingMovieIndex = cart.findIndex(item => item.id === movieId);
 
@@ -80,8 +76,6 @@ if (document.title.includes('Catalog') || document.title.includes('Profile')) {
                             quantity: 1
                         });
                     }
-
-                    // Сохраняем корзину текущего пользователя в localStorage
                     currentUser.cart = cart;
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
