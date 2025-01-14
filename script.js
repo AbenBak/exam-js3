@@ -3,7 +3,7 @@ const options = {
     method: 'GET',
     headers: {
         'x-rapidapi-host': 'hollywood-movies.p.rapidapi.com',
-        'x-rapidapi-key': 'bf30f6c279mshea5ccff55b8d6dep19f976jsn54f81f5acefd' 
+        'x-rapidapi-key': 'bf30f6c279mshea5ccff55b8d6dep19f976jsn54f81f5acefd'
     }
 };
 
@@ -50,30 +50,45 @@ if (document.title.includes('Catalog') || document.title.includes('Profile')) {
     if (container) {
         container.addEventListener('click', (e) => {
             if (e.target && e.target.classList.contains('add')) {
-                const movieId = e.target.dataset.movieId;
-                const movieName = e.target.closest('.movie').querySelector('.name').textContent.replace('Name: ', '');
-                const movieRelease = e.target.closest('.movie').querySelector('.release').textContent.replace('Release: ', '');
-                const movieCost = parseInt(e.target.closest('.movie').querySelector('.cost').textContent.replace('$', '').trim());
-                const moviePoster = e.target.closest('.movie').querySelector('img').src;
+                if (document.title.includes('Profile')) {
+                    const movieId = e.target.dataset.movieId;
+                    const movieName = e.target.closest('.movie').querySelector('.name').textContent.replace('Name: ', '');
+                    const movieRelease = e.target.closest('.movie').querySelector('.release').textContent.replace('Release: ', '');
+                    const movieCost = parseInt(e.target.closest('.movie').querySelector('.cost').textContent.replace('$', '').trim());
+                    const moviePoster = e.target.closest('.movie').querySelector('img').src;
+            
+                    // Получаем текущего пользователя
+                    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                    if (!currentUser) {
+                        alert('Пожалуйста, войдите в систему');
+                        return;
+                    }
 
-                let cart = JSON.parse(localStorage.getItem('cart')) || [];
-                const existingMovieIndex = cart.findIndex(item => item.id === movieId);
+                    // Добавляем фильм в корзину текущего пользователя
+                    let cart = currentUser.cart || [];
+                    const existingMovieIndex = cart.findIndex(item => item.id === movieId);
 
-                if (existingMovieIndex > -1) {
-                    cart[existingMovieIndex].quantity += 1;
+                    if (existingMovieIndex > -1) {
+                        cart[existingMovieIndex].quantity += 1;
+                    } else {
+                        cart.push({
+                            id: movieId,
+                            name: movieName,
+                            release: movieRelease,
+                            cost: movieCost,
+                            poster: moviePoster,
+                            quantity: 1
+                        });
+                    }
+
+                    // Сохраняем корзину текущего пользователя в localStorage
+                    currentUser.cart = cart;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+                    alert('Фильм добавлен в корзину');
                 } else {
-                    cart.push({
-                        id: movieId,
-                        name: movieName,
-                        release: movieRelease,
-                        cost: movieCost,
-                        poster: moviePoster,
-                        quantity: 1
-                    });
+                    window.location = 'reg.html';
                 }
-                localStorage.setItem('cart', JSON.stringify(cart));
-
-                alert('Фильм добавлен в корзину');
             }
         });
     }
@@ -125,12 +140,23 @@ if (document.title.includes('profile')) {
 if (document.title.includes('Корзина')) {
     document.addEventListener('DOMContentLoaded', () => {
         const itemsContainer = document.querySelector('.items');
-        let items = JSON.parse(localStorage.getItem('cart')) || [];
+        const currentUser = JSON.parse(localStorage.getItem('currentUser')); 
+        let items = [];
+        if (currentUser) {
+            items = currentUser.cart || [];  
+        }
+
         let totalCost = 0;
 
         function renderItems() {
-            itemsContainer.innerHTML = '';
+            itemsContainer.innerHTML = ''; 
             totalCost = 0;
+
+            if (items.length === 0) {
+                itemsContainer.innerHTML = '<p>Ваша корзина пуста</p>';
+                return;
+            }
+
             items.forEach((item, index) => {
                 const itemCost = item.quantity * item.cost;
                 totalCost += itemCost;
@@ -149,27 +175,31 @@ if (document.title.includes('Корзина')) {
                     <hr>
                 `;
             });
+
             itemsContainer.innerHTML += `<p class="total-cost">Total Cost: ${totalCost}$</p>`;
         }
-
         itemsContainer.addEventListener('click', (e) => {
             const target = e.target;
             const index = target.dataset.index;
 
             if (target.classList.contains('increase')) {
-                items[index].quantity += 1;
+                items[index].quantity += 1;  
             } else if (target.classList.contains('decrease')) {
                 if (items[index].quantity > 1) {
-                    items[index].quantity -= 1;
+                    items[index].quantity -= 1;  
                 } else {
-                    items.splice(index, 1);
+                    items.splice(index, 1); 
                 }
             }
-            localStorage.setItem('cart', JSON.stringify(items));
+
+            if (currentUser) {
+                currentUser.cart = items;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            }
+
             renderItems();
         });
 
-        console.log('Items from localStorage:', items);
-        renderItems();
+        renderItems();  
     });
 }

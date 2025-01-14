@@ -18,9 +18,8 @@ function checkUser(e) {
     }
 
     if (foundUser) {
-        console.log('Пользователь найден:', foundUser);
         alert('Вход выполнен успешно');
-        localStorage.setItem('currentUser', JSON.stringify(foundUser)); // Сохраняем текущего пользователя
+        localStorage.setItem('currentUser', JSON.stringify(foundUser)); 
         window.location = "profile.html";
     } else {
         alert('Неверный логин или пароль');
